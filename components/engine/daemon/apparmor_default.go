@@ -22,6 +22,15 @@ func DefaultApparmorProfile() string {
 	return ""
 }
 
+func clobberDefaultAppArmorProfile() error {
+	if apparmor.IsEnabled() {
+		if err := aaprofile.InstallDefault(defaultApparmorProfile); err != nil {
+			return fmt.Errorf("AppArmor enabled on system but the %s profile could not be loaded: %s", defaultApparmorProfile, err)
+		}
+	}
+	return nil
+}
+
 func ensureDefaultAppArmorProfile() error {
 	if apparmor.IsEnabled() {
 		loaded, err := aaprofile.IsLoaded(defaultApparmorProfile)
@@ -35,10 +44,7 @@ func ensureDefaultAppArmorProfile() error {
 		}
 
 		// Load the profile.
-		if err := aaprofile.InstallDefault(defaultApparmorProfile); err != nil {
-			return fmt.Errorf("AppArmor enabled on system but the %s profile could not be loaded: %s", defaultApparmorProfile, err)
-		}
+		return clobberDefaultAppArmorProfile()
 	}
-
 	return nil
 }
